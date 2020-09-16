@@ -1,0 +1,121 @@
+﻿@page "/"
+@using Newtonsoft.Json.Linq;
+@using BlazeMoviesSearch.Model;
+@using System.Collections.Generic;
+@using System.Net.Http; 
+@inject HttpClient Http;
+<h3>Enter movie name:</h3>
+
+<div>
+    <div class="input-group mb-3" style="margin-top: 20px;">
+        <input class="form-control" placeholder="Enter movie name..." @bind="@movieName" />
+        <div class="input-group-append" style="margin-right: 12px;">
+            <button class="btn btn-primary" @onclick="@(async () => await GetMovies() )"> Search Movie</button>
+        </div>
+    </div>
+
+
+    @if (!(movies == null))
+    {
+        <div style="display: flex; flex-flow: row wrap;">
+            @foreach (Movie movie in movies)
+            {
+                <div class="card" style="width: 18rem; margin: 12px;">
+                    <img class="card-img-top"
+                         src='https://image.tmdb.org/t/p/w185_and_h278_bestv2/@(movie.poster_path)'
+                         onerror="src='/blank_poster.jpg'" />
+                    <div class="card-body">
+                        <h3 class="card-title">@(movie.title)</h3>
+                        <p class="card-text"><small>RELEASE DATE: @(movie.release_date)</small></p>
+                        <p class="card-text"><small>RATING: @(movie.vote_average)</small></p>
+                        <p class="card-text text-truncate">@(movie.overview)</p>
+                        <div class="card-body">
+                            <a href="#" class="btn btn-primary">Add</a>
+                            <button @onclick="@( async () => await ShowDetails(movie))"
+                                    data-toggle="modal" data-target="#exampleModal"
+                                    class="btn btn-primary">
+                                Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal -->
+@if (ShowPopup)
+{
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">@SelectedMovie.title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="display: flex;">
+                    <img style="width: 200px; height: 200px; flex-grow: 0; flex-shrink: 1;"
+                         src='https://image.tmdb.org/t/p/w185_and_h278_bestv2/@(SelectedMovieDetail.poster_path)'
+                         onerror="src='/blank_poster.jpg'" />
+                    <div style="flex-grow: 1; margin-left: 2rem;">
+                        <p>Relased on: @(SelectedMovie.release_date)</p>
+                        <p>Ranked @(SelectedMovie.vote_average)</p>
+                        <p>Movie Budget: @(SelectedMovieDetail.budget)</p>
+                        <p>Revenue Made: @(SelectedMovieDetail.revenue)</p>
+                        <p>Movie Genres:</p>
+                        @foreach (Genre genre in SelectedMovieDetail.genres)
+                        {
+                            <p>@(genre.name)</p>
+                        }
+                        <a href="@(SelectedMovieDetail.GetIMDBString())">Check it out on IMDB</a>
+                        <p>@(SelectedMovie.overview)</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    bool ShowPopup = false;
+    private string movieName = string.Empty;
+    Movie SelectedMovie = new Movie();
+    MovieDetail SelectedMovieDetail = new MovieDetail();
+    const string API_KEY = "dd259fbf855be280944116f0c8c19f03";
+    IList<Movie> movies = new List<Movie>();
+
+    private async Task ShowDetails(Movie selectedMovie)
+    {
+        ShowPopup = true;
+        SelectedMovie = selectedMovie;
+
+        string api_call =
+            $"https://api.themoviedb.org/3/movie/{selectedMovie.id}?api_key={API_KEY}&=en-US";
+
+        MovieDetail selectedMovieDetail = await Http.GetFromJsonAsync<MovieDetail>(api_call);
+    }
+
+    private async Task GetMovies()
+    {
+        string api_call = $"https://api.themoviedb.org/3/search/movie?api_key={API_KEY}&language=en-US&query={movieName}&page=1&include_adult=false";
+        var response = await Http.GetStringAsync(api_call);
+
+        Newtonsoft.Json.Linq.JObject movieSearch = Newtonsoft.Json.Linq.JObject.Parse(response);
+
+        // get JSON result object as list
+        IList<JToken> results = movieSearch["results"].Children().ToList();
+        foreach (JToken result in results)
+        {
+            //use jtoken.toobject helper method
+            Movie movieresult = result.ToObject<Movie>();
+            movies.Add(movieresult);
+        }
+    }
+}

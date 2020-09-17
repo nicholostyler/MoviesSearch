@@ -1,0 +1,41 @@
+﻿@using BlazeMoviesSearch.Model;
+@using System.Collections.Generic;
+ 
+@if (!(Movies == null))
+{
+    <div style="display: flex; flex-flow: row wrap;">
+        @foreach (Movie movie in Movies)
+        {
+            <div class="card" style="width: 18rem; margin: 12px;">
+                <img class="card-img-top"
+                     src='https://image.tmdb.org/t/p/w185_and_h278_bestv2/@(movie.poster_path)'
+                     onerror="src='/blank_poster.jpg'" />
+                <div class="card-body">
+                    <h3 class="card-title">@(movie.title)</h3>
+                    <p class="card-text"><small>RELEASE DATE: @(movie.release_date)</small></p>
+                    <p class="card-text"><small>RATING: @(movie.vote_average)</small></p>
+                    <p class="card-text text-truncate">@(movie.overview)</p>
+                    <div class="card-body">
+                        <a href="#" class="btn btn-primary">Add</a>
+                        <button 
+                                @onclick="@(async () => await OnDetailsClick.InvokeAsync(movie))"
+                                class="btn btn-primary"
+                                data-toggle="modal" data-target="#exampleModal">
+                            Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        </div>
+}
+
+
+        @code {
+
+            [Parameter]
+            public IList<Movie> Movies { get; set; } = new List<Movie>();
+
+            [Parameter]
+            public EventCallback<Movie> OnDetailsClick { get; set; }
+        }

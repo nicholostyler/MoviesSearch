@@ -1,0 +1,29 @@
+﻿@using BlazeMoviesSearch.Model;
+
+<div class="modal-body" style="display: flex;">
+    <img style="width: 200px; height: 200px; flex-grow: 0; flex-shrink: 1;"
+         src='https://image.tmdb.org/t/p/w185_and_h278_bestv2/@(SelectedMovieDetail.poster_path)'
+         onerror="src='/blank_poster.jpg'" />
+    <div style="flex-grow: 1; margin-left: 2rem;">
+        <p>Relased on: @(SelectedMovieDetail.release_date)</p>
+        <p>Ranked @(SelectedMovieDetail.vote_average)</p>
+        <p>Movie Budget: @(SelectedMovieDetail.budget)</p>
+        <p>Revenue Made: @(SelectedMovieDetail.revenue)</p>
+        <p>Movie Genres:</p>
+        @foreach (Genre genre in SelectedMovieDetail.genres)
+        {
+            <p>@(genre.name)</p>
+        }
+        <a href="@(SelectedMovieDetail.GetIMDBString())">Check it out on IMDB</a>
+        <p>@(SelectedMovieDetail.overview)</p>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-primary">Add</button>
+</div>
+
+@code {
+    [Parameter]
+    public MovieDetail SelectedMovieDetail { get; set; }
+}

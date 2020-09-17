@@ -2,67 +2,48 @@
 @using Newtonsoft.Json.Linq;
 @using BlazeMoviesSearch.Model;
 @using System.Collections.Generic;
-@using System.Net.Http; 
+@using System.Net.Http;
 @inject HttpClient Http;
-<h3>Enter movie name:</h3>
 
-<div>
-    <div class="input-group mb-3" style="margin-top: 20px;">
-        <input class="form-control" placeholder="Enter movie name..." @bind="@movieName" />
-        <div class="input-group-append" style="margin-right: 12px;">
-            <button class="btn btn-primary" @onclick="@(async () => await GetMovies() )"> Search Movie</button>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand">Blaze Movie Search</a>
+    </nav>
+
+
+    <div style="margin-left: 20px; margin-right: 20px; margin-top: 20px;">
+        <h3>Enter movie name:</h3>
+
+        <div class="input-group mb-3" style="margin-top: 20px;">
+            <input class="form-control" placeholder="Enter movie name..." @bind="@movieName" />
+            <div class="input-group-append" style="margin-right: 12px;">
+                <button class="btn btn-primary" @onclick="@(async () => await GetMovies() )"> Search Movie</button>
+            </div>
         </div>
+
+        <MovieList Movies="@(movies)" OnDetailsClick="@(ShowDetails)" />
+
     </div>
-
-
-    @if (!(movies == null))
-    {
-        <div style="display: flex; flex-flow: row wrap;">
-            @foreach (Movie movie in movies)
-            {
-                <div class="card" style="width: 18rem; margin: 12px;">
-                    <img class="card-img-top"
-                         src='https://image.tmdb.org/t/p/w185_and_h278_bestv2/@(movie.poster_path)'
-                         onerror="src='/blank_poster.jpg'" />
-                    <div class="card-body">
-                        <h3 class="card-title">@(movie.title)</h3>
-                        <p class="card-text"><small>RELEASE DATE: @(movie.release_date)</small></p>
-                        <p class="card-text"><small>RATING: @(movie.vote_average)</small></p>
-                        <p class="card-text text-truncate">@(movie.overview)</p>
-                        <div class="card-body">
-                            <a href="#" class="btn btn-primary">Add</a>
-                            <button @onclick="@( async () => await ShowDetails(movie))"
-                                    data-toggle="modal" data-target="#exampleModal"
-                                    class="btn btn-primary">
-                                Details
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-</div>
 
 <!-- Modal -->
 @if (ShowPopup)
 {
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">@SelectedMovie.title</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">@SelectedMovieDetail.title</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                        <span>&times;</span>
                     </button>
                 </div>
+
                 <div class="modal-body" style="display: flex;">
                     <img style="width: 200px; height: 200px; flex-grow: 0; flex-shrink: 1;"
                          src='https://image.tmdb.org/t/p/w185_and_h278_bestv2/@(SelectedMovieDetail.poster_path)'
                          onerror="src='/blank_poster.jpg'" />
                     <div style="flex-grow: 1; margin-left: 2rem;">
-                        <p>Relased on: @(SelectedMovie.release_date)</p>
-                        <p>Ranked @(SelectedMovie.vote_average)</p>
+                        <p>Relased on: @(SelectedMovieDetail.release_date)</p>
+                        <p>Ranked @(SelectedMovieDetail.vote_average)</p>
                         <p>Movie Budget: @(SelectedMovieDetail.budget)</p>
                         <p>Revenue Made: @(SelectedMovieDetail.revenue)</p>
                         <p>Movie Genres:</p>
@@ -71,7 +52,7 @@
                             <p>@(genre.name)</p>
                         }
                         <a href="@(SelectedMovieDetail.GetIMDBString())">Check it out on IMDB</a>
-                        <p>@(SelectedMovie.overview)</p>
+                        <p>@(SelectedMovieDetail.overview)</p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -93,13 +74,15 @@
 
     private async Task ShowDetails(Movie selectedMovie)
     {
-        ShowPopup = true;
         SelectedMovie = selectedMovie;
 
         string api_call =
             $"https://api.themoviedb.org/3/movie/{selectedMovie.id}?api_key={API_KEY}&=en-US";
 
-        MovieDetail selectedMovieDetail = await Http.GetFromJsonAsync<MovieDetail>(api_call);
+        SelectedMovieDetail = await Http.GetFromJsonAsync<MovieDetail>(api_call);
+
+        ShowPopup = true;
+        Console.WriteLine(ShowPopup);
     }
 
     private async Task GetMovies()

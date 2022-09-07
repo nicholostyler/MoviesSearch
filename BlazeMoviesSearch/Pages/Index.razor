@@ -69,7 +69,7 @@
     private string movieName = string.Empty;
     Movie SelectedMovie = new Movie();
     MovieDetail SelectedMovieDetail = new MovieDetail();
-    const string API_KEY = "dd259fbf855be280944116f0c8c19f03";
+    string API_KEY = APIKeys.MovieAPIKey;
     IList<Movie> movies = new List<Movie>();
 
     private async Task ShowDetails(Movie selectedMovie)
